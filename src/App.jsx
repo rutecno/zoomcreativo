@@ -3,7 +3,7 @@ import logoImg from "./assets/logo.jpg";
 import { HISTORICO_GANADORES } from "./utils/historicoData";
 import { 
   Download, Frame, Crop, Sliders, RefreshCw, ZoomIn, ZoomOut, 
-  Upload, Sparkles, Award, Link2, Calendar, Trash2, Globe
+  Upload, Sparkles, Award, Link2, Calendar, Trash2, Globe, Lock, LogOut, X
 } from "lucide-react";
 import Gallery from "./components/Gallery";
 
@@ -17,6 +17,39 @@ export default function App() {
   const [device, setDevice] = useState("Redmi Note 11s");
   const [photoUrl, setPhotoUrl] = useState("/zoomcreativo/portafolio/1.jpeg");
   
+  // Admin Authentication State
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [usernameInput, setUsernameInput] = useState("");
+  const [passwordInput, setPasswordInput] = useState("");
+  const [loginError, setLoginError] = useState("");
+
+  // Check login session on mount
+  useEffect(() => {
+    const loggedIn = sessionStorage.getItem("zc_is_admin") === "true";
+    setIsAdmin(loggedIn);
+  }, []);
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    // Credentials: admin / zoomcreativo2026
+    if (usernameInput.trim().toLowerCase() === "admin" && passwordInput === "zoomcreativo2026") {
+      setIsAdmin(true);
+      sessionStorage.setItem("zc_is_admin", "true");
+      setShowLoginModal(false);
+      setLoginError("");
+      setUsernameInput("");
+      setPasswordInput("");
+    } else {
+      setLoginError("Usuario o contraseña incorrectos.");
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAdmin(false);
+    sessionStorage.removeItem("zc_is_admin");
+  };
+
   // Customization State
   const [styleType, setStyleType] = useState("cine"); // 'cine', 'minimal', 'polaroid'
   const [format, setFormat] = useState("1:1"); // '1:1', '9:16'
@@ -389,8 +422,10 @@ export default function App() {
       const canvas = canvasRef.current;
       if (!canvas) return;
       
-      // Save it to the local portfolio list
-      saveWinnerToLocalPortfolio();
+      // Save it to the local portfolio list only if logged in as admin
+      if (isAdmin) {
+        saveWinnerToLocalPortfolio();
+      }
 
       const link = document.createElement("a");
       const safeTheme = theme.toLowerCase().replace(/[^a-z0-9]/g, "_");
@@ -430,9 +465,22 @@ export default function App() {
               <span>FOTOGRAFÍA MÓVIL • ENMARCADOR OFICIAL</span>
             </div>
           </div>
-          <div className="header-badge-tag">
-            <Sparkles size={14} className="spinning-icon" />
-            <span>Herramienta Administrativa</span>
+          
+          <div className="header-actions-area">
+            {isAdmin ? (
+              <div className="admin-status-bar">
+                <span className="badge badge-amber admin-badge">Modo Admin</span>
+                <button className="btn btn-logout-danger" onClick={handleLogout}>
+                  <LogOut size={14} />
+                  <span>Salir</span>
+                </button>
+              </div>
+            ) : (
+              <button className="btn btn-secondary btn-login-nav" onClick={() => setShowLoginModal(true)}>
+                <Lock size={14} />
+                <span>Admin</span>
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -442,7 +490,8 @@ export default function App() {
         <div className="container editor-grid">
           
           {/* Left Panel: Form Controls */}
-          <div className="editor-controls-panel glass-panel animate-fade-in">
+          {isAdmin ? (
+            <div className="editor-controls-panel glass-panel animate-fade-in">
             <h2 className="panel-title-text">
               <Sliders size={18} /> Datos del Enmarcado
             </h2>
@@ -653,6 +702,23 @@ export default function App() {
 
             </form>
           </div>
+          ) : (
+            <div className="editor-controls-panel glass-panel animate-fade-in visitor-mode-panel">
+              <div className="visitor-message-box">
+                <Award size={48} className="visitor-icon" />
+                <h3>Portafolio de Ganadores</h3>
+                <p>Estás en la vista pública de <strong>Zoom Creativo</strong>.</p>
+                <p className="visitor-subtext">Haz clic en cualquier ganador en la galería de abajo para verlo enmarcado a la derecha y descargarlo.</p>
+                <button 
+                  type="button" 
+                  className="btn btn-primary btn-admin-shortcut"
+                  onClick={() => setShowLoginModal(true)}
+                >
+                  <Lock size={16} /> Acceder como Admin
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Right Panel: Canvas Preview */}
           <div className="editor-preview-panel glass-panel animate-fade-in">
@@ -722,6 +788,52 @@ export default function App() {
           <p>© 2026 Zoom Creativo. Herramienta Oficial de Enmarcado de Fotografia Movil.</p>
         </div>
       </footer>
+
+      {/* Login Modal */}
+      {showLoginModal && (
+        <div className="login-modal-overlay animate-fade-in">
+          <div className="login-modal-box glass-panel animate-scale-in">
+            <div className="modal-header-row">
+              <h3>Acceso Administrador</h3>
+              <button className="close-modal-btn" onClick={() => setShowLoginModal(false)}>
+                <X size={18} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleLogin} className="login-modal-form">
+              {loginError && <div className="login-error-alert">{loginError}</div>}
+              
+              <div className="form-group">
+                <label className="form-label">Usuario</label>
+                <input 
+                  type="text" 
+                  value={usernameInput}
+                  onChange={(e) => setUsernameInput(e.target.value)}
+                  placeholder="admin"
+                  required
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Contraseña</label>
+                <input 
+                  type="password" 
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="form-input"
+                />
+              </div>
+
+              <button type="submit" className="btn btn-primary btn-login-submit">
+                Ingresar
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       <style>{`
         .main-header-bar {
@@ -1015,6 +1127,194 @@ export default function App() {
           .canvas-frame-container {
             height: 420px;
           }
+        }
+
+        /* Admin Login Area & Modal */
+        .header-actions-area {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .admin-status-bar {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .admin-badge {
+          background: rgba(242, 153, 74, 0.15);
+          color: var(--accent-amber);
+          border: 1px solid rgba(242, 153, 74, 0.3);
+          font-weight: 700;
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 0.75rem;
+        }
+
+        .btn-logout-danger {
+          background: rgba(220, 38, 38, 0.15);
+          border: 1px solid rgba(220, 38, 38, 0.3);
+          color: #f87171;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          padding: 6px 12px;
+          border-radius: var(--border-radius-sm);
+          font-size: 0.8rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .btn-logout-danger:hover {
+          background: rgba(220, 38, 38, 0.3);
+          color: #ffffff;
+        }
+
+        .btn-login-nav {
+          padding: 6px 12px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid var(--border-glass);
+          color: var(--text-secondary);
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          border-radius: var(--border-radius-sm);
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .btn-login-nav:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: var(--text-primary);
+        }
+
+        /* Visitor Mode Control Panel */
+        .visitor-mode-panel {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 400px;
+          text-align: center;
+          padding: 40px 30px;
+        }
+
+        .visitor-message-box {
+          max-width: 320px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 16px;
+        }
+
+        .visitor-icon {
+          color: var(--accent-amber);
+          opacity: 0.8;
+          margin-bottom: 8px;
+        }
+
+        .visitor-message-box h3 {
+          font-size: 1.35rem;
+          font-weight: 700;
+          color: var(--text-primary);
+        }
+
+        .visitor-message-box p {
+          font-size: 0.9rem;
+          color: var(--text-secondary);
+          line-height: 1.5;
+        }
+
+        .visitor-subtext {
+          font-size: 0.8rem !important;
+          color: var(--text-muted) !important;
+        }
+
+        .btn-admin-shortcut {
+          margin-top: 8px;
+          width: 100%;
+          justify-content: center;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        /* Login Modal Window */
+        .login-modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.8);
+          backdrop-filter: blur(8px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+        }
+
+        .login-modal-box {
+          width: 90%;
+          max-width: 400px;
+          padding: 30px;
+          background: rgba(18, 18, 24, 0.95);
+          border: 1px solid var(--border-glass);
+          border-radius: var(--border-radius-md);
+        }
+
+        .modal-header-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 24px;
+          border-bottom: 1px solid var(--border-glass);
+          padding-bottom: 12px;
+        }
+
+        .modal-header-row h3 {
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: var(--text-primary);
+          margin: 0;
+        }
+
+        .close-modal-btn {
+          background: transparent;
+          border: none;
+          color: var(--text-muted);
+          cursor: pointer;
+          transition: color 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .close-modal-btn:hover {
+          color: var(--text-primary);
+        }
+
+        .login-modal-form {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .login-error-alert {
+          background: rgba(220, 38, 38, 0.15);
+          border: 1px solid rgba(220, 38, 38, 0.3);
+          color: #f87171;
+          padding: 10px 14px;
+          border-radius: var(--border-radius-sm);
+          font-size: 0.82rem;
+          font-weight: 500;
+        }
+
+        .btn-login-submit {
+          margin-top: 8px;
+          justify-content: center;
+          font-weight: 700;
         }
       `}</style>
     </div>

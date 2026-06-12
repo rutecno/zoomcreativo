@@ -1,0 +1,15 @@
+# ESTA ES LA PLANTILLA PARA TUS GANADORES REALES
+# Guarda tus fotos en esta misma carpeta (public/portafolio/)
+# Y escribe los datos de cada foto aquí abajo respetando este formato:
+
+Archivo: 1.jpg
+Tema: Iglesias
+Lugar: Manizales
+Instagram: @rufotografia_
+Celular: Xiaomi 17
+
+Archivo: 2.jpg
+Tema: Sombras y luces
+Lugar: Medellín
+Instagram: @carlos_m
+Celular: iPhone 15 Pro

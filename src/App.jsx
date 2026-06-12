@@ -9,13 +9,13 @@ import Gallery from "./components/Gallery";
 
 export default function App() {
   // Enmarcador State
-  const [theme, setTheme] = useState("Sombras y Luces");
-  const [winnerName, setWinnerName] = useState("Ronaldo Urdaneta");
-  const [winnerInstagram, setWinnerInstagram] = useState("zoomcreativo.ok");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
-  const [location, setLocation] = useState("Manizales");
-  const [device, setDevice] = useState("Xiaomi 17");
-  const [photoUrl, setPhotoUrl] = useState("https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&q=80&w=800");
+  const [theme, setTheme] = useState("Luces de La Ciudad");
+  const [winnerName, setWinnerName] = useState("city_wildlens");
+  const [winnerInstagram, setWinnerInstagram] = useState("city_wildlens");
+  const [date, setDate] = useState("2026-06-12");
+  const [location, setLocation] = useState("Torre Colpatria-Bogota");
+  const [device, setDevice] = useState("Redmi Note 11s");
+  const [photoUrl, setPhotoUrl] = useState("/zoomcreativo/portafolio/1.jpeg");
   
   // Customization State
   const [styleType, setStyleType] = useState("cine"); // 'cine', 'minimal', 'polaroid'
@@ -69,6 +69,9 @@ export default function App() {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
+    
+    // Clean leading @ if any in instagram handle
+    const cleanInstagram = winnerInstagram ? winnerInstagram.trim().replace(/^@/, "") : "";
     
     // Set high-res canvas dimensions
     const width = format === "1:1" ? 1200 : 1080;
@@ -192,10 +195,10 @@ export default function App() {
       ctx.font = `bold ${format === "1:1" ? "32px" : "38px"} sans-serif`;
       ctx.fillText(winnerName, boxX, footerY + 70);
 
-      if (winnerInstagram) {
+      if (cleanInstagram) {
         ctx.fillStyle = "#f2c94c";
         ctx.font = `500 ${format === "1:1" ? "16px" : "20px"} sans-serif`;
-        ctx.fillText(`@${winnerInstagram}`, boxX, footerY + 105);
+        ctx.fillText(`@${cleanInstagram}`, boxX, footerY + 105);
       }
 
       // Metadata Tech Box
@@ -251,10 +254,10 @@ export default function App() {
       ctx.font = `bold ${format === "1:1" ? "16px" : "18px"} monospace`;
       ctx.fillText(`GANADOR DEL RETO: "${theme.toUpperCase()}"`, format === "1:1" ? boxX + boxWidth : width / 2, footerY + 45);
 
-      if (winnerInstagram) {
+      if (cleanInstagram) {
         ctx.fillStyle = "#f2c94c";
         ctx.font = `${format === "1:1" ? "15px" : "16px"} sans-serif`;
-        ctx.fillText(`@${winnerInstagram}`, format === "1:1" ? boxX + boxWidth : width / 2, footerY + 75);
+        ctx.fillText(`@${cleanInstagram}`, format === "1:1" ? boxX + boxWidth : width / 2, footerY + 75);
       }
       
       ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
@@ -273,10 +276,10 @@ export default function App() {
       ctx.font = `italic ${format === "1:1" ? "20px" : "24px"} serif`;
       ctx.fillText(`por ${winnerName}`, boxX, footerY + 55);
 
-      if (winnerInstagram) {
+      if (cleanInstagram) {
         ctx.fillStyle = "#f2994a";
         ctx.font = `14px monospace`;
-        ctx.fillText(`instagram: @${winnerInstagram}`, boxX, footerY + 85);
+        ctx.fillText(`instagram: @${cleanInstagram}`, boxX, footerY + 85);
       }
 
       ctx.fillStyle = "rgba(255, 255, 255, 0.5)";

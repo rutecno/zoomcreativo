@@ -2,14 +2,39 @@
 # Guarda tus fotos en esta misma carpeta (public/portafolio/)
 # Y escribe los datos de cada foto aquí abajo respetando este formato:
 
-Archivo: 1.jpg
-Tema: Iglesias
-Lugar: Manizales
-Instagram: @rufotografia_
-Celular: Xiaomi 17
+Archivo: 1.jpeg
+Tema: Luces de La Ciudad
+Lugar: Torre Colpatria-Bogota
+Instagram: @city_wildlens
+Celular: Redmi Note 11s
 
-Archivo: 2.jpg
-Tema: Sombras y luces
-Lugar: Medellín
-Instagram: @carlos_m
-Celular: iPhone 15 Pro
+Archivo: 2.jpeg
+Tema: Hora Dorada
+Lugar: Buritaca-Magdalena
+Instagram: @diegogomezdags
+Celular: Honor 90 
+
+Archivo: 3.jpeg
+Tema: Iglesias
+Lugar: El calvario (Aranjuez) Med-Ant
+Instagram: @juanca_castrillon
+Celular: Redmi note 13 pro
+
+Archivo: 4.jpeg
+Tema: Reflejos
+Lugar: San Roque-Antioquia
+Instagram: jonatravelcol
+Celular: Xiaomi 15 Ultra
+
+Archivo: 5.jpeg
+Tema: Fotografía de calle a color
+Lugar: El retiro-Antioquia
+Instagram: ----------
+Celular: Xiaomi 15 Ultra
+
+Archivo: 6.jpeg
+Tema: El clima como protagonista 
+Lugar: Belmira- Antioquia 
+Instagram: @juanca_castrillon
+Celular: Redmi note 13 pro
+

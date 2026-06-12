@@ -24,7 +24,8 @@ export default function App() {
   const [posX, setPosX] = useState(0);
   const [posY, setPosY] = useState(0);
 
-  // Loading States
+  // Loading and Portfolio States
+  const [winners, setWinners] = useState([]);
   const [photoLoaded, setPhotoLoaded] = useState(false);
   const [logoLoaded, setLogoLoaded] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -33,6 +34,12 @@ export default function App() {
   const canvasRef = useRef(null);
   const mainImageRef = useRef(null);
   const logoImageRef = useRef(null);
+
+  // Load local winners on mount
+  useEffect(() => {
+    const localWinners = JSON.parse(localStorage.getItem("zc_local_winners") || "[]");
+    setWinners([...localWinners, ...HISTORICO_GANADORES]);
+  }, []);
 
   // Load Main Photo & Logo
   useEffect(() => {
@@ -306,12 +313,85 @@ export default function App() {
     }
   };
 
+  const saveWinnerToLocalPortfolio = () => {
+    const img = mainImageRef.current;
+    if (!img) return;
+
+    // Create a temporary canvas to resize the image
+    const tempCanvas = document.createElement("canvas");
+    const maxDim = 600;
+    let w = img.width;
+    let h = img.height;
+    
+    if (w > h) {
+      if (w > maxDim) {
+        h = Math.round((h * maxDim) / w);
+        w = maxDim;
+      }
+    } else {
+      if (h > maxDim) {
+        w = Math.round((w * maxDim) / h);
+        h = maxDim;
+      }
+    }
+    
+    tempCanvas.width = w;
+    tempCanvas.height = h;
+    const tempCtx = tempCanvas.getContext("2d");
+    tempCtx.drawImage(img, 0, 0, w, h);
+    
+    // Get compressed lightweight base64
+    const compressedBase64 = tempCanvas.toDataURL("image/jpeg", 0.7);
+    
+    const newWinner = {
+      id: "local_" + Date.now(),
+      date: date,
+      theme: theme,
+      winnerName: winnerName || "Zoom Creativo",
+      winnerInstagram: winnerInstagram,
+      location: location,
+      device: device,
+      photoUrl: compressedBase64,
+      description: `Ganador del reto. Capturado en ${location} con ${device}.`,
+      techniques: [],
+      likes: 0,
+      applause: 0
+    };
+
+    try {
+      const localWinners = JSON.parse(localStorage.getItem("zc_local_winners") || "[]");
+      // Check if this theme + name + date combination already exists
+      const exists = localWinners.some(w => w.theme === theme && w.winnerName === winnerName && w.date === date);
+      if (!exists) {
+        const updated = [newWinner, ...localWinners];
+        localStorage.setItem("zc_local_winners", JSON.stringify(updated));
+        setWinners([...updated, ...HISTORICO_GANADORES]);
+      }
+    } catch (e) {
+      console.error("No se pudo guardar en el portafolio local (límite de almacenamiento excedido):", e);
+    }
+  };
+
+  const handleDeleteLocalWinner = (id) => {
+    try {
+      const localWinners = JSON.parse(localStorage.getItem("zc_local_winners") || "[]");
+      const updated = localWinners.filter(w => w.id !== id);
+      localStorage.setItem("zc_local_winners", JSON.stringify(updated));
+      setWinners([...updated, ...HISTORICO_GANADORES]);
+    } catch (e) {
+      console.error("Error al eliminar el ganador local:", e);
+    }
+  };
+
   const handleDownload = () => {
     setDownloading(true);
     setTimeout(() => {
       const canvas = canvasRef.current;
       if (!canvas) return;
       
+      // Save it to the local portfolio list
+      saveWinnerToLocalPortfolio();
+
       const link = document.createElement("a");
       const safeTheme = theme.toLowerCase().replace(/[^a-z0-9]/g, "_");
       const safeName = winnerName.toLowerCase().replace(/[^a-z0-9]/g, "_");
@@ -630,9 +710,10 @@ export default function App() {
         </div>
         
         <Gallery 
-          winners={HISTORICO_GANADORES} 
+          winners={winners} 
           onOpenWinnerDetail={handleSelectWinnerFromGallery}
           onOpenFrameGenerator={handleSelectWinnerFromGallery}
+          onDeleteLocalWinner={handleDeleteLocalWinner}
         />
       </section>
 

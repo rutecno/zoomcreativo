@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Search, Calendar, Award, Heart, Sparkles, Link2, X, Eye, Frame } from "lucide-react";
+import { Search, Calendar, Award, Heart, Sparkles, Link2, X, Eye, Frame, Trash2 } from "lucide-react";
 import { database } from "../utils/database";
 
-export default function Gallery({ winners, onOpenWinnerDetail, onOpenFrameGenerator }) {
+export default function Gallery({ winners, onOpenWinnerDetail, onOpenFrameGenerator, onDeleteLocalWinner }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [timeFilter, setTimeFilter] = useState("all"); // 'all', 'week', 'month'
   const [filteredWinners, setFilteredWinners] = useState([]);
@@ -134,6 +134,20 @@ export default function Gallery({ winners, onOpenWinnerDetail, onOpenFrameGenera
                     <Calendar size={10} />
                     <span>{winner.date}</span>
                   </div>
+                  {winner.id && winner.id.toString().startsWith("local_") && (
+                    <button 
+                      className="card-delete-badge-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (window.confirm("¿Seguro que deseas eliminar este ganador de tu portafolio local?")) {
+                          onDeleteLocalWinner(winner.id);
+                        }
+                      }}
+                      title="Eliminar de mi dispositivo"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  )}
                 </div>
 
                 <div className="card-content-box">
@@ -357,6 +371,27 @@ export default function Gallery({ winners, onOpenWinnerDetail, onOpenFrameGenera
           display: flex;
           align-items: center;
           gap: 4px;
+        }
+
+        .card-delete-badge-btn {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          background: rgba(220, 38, 38, 0.85);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          color: #ffffff;
+          padding: 6px;
+          border-radius: 50%;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+          z-index: 5;
+        }
+        .card-delete-badge-btn:hover {
+          background: rgb(220, 38, 38);
+          transform: scale(1.1);
         }
 
         /* Card Content */

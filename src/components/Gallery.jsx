@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Search, Calendar, Award, Heart, Sparkles, Link2, X, Eye, Frame, Trash2 } from "lucide-react";
 import { database } from "../utils/database";
 
-export default function Gallery({ winners, onOpenWinnerDetail, onOpenFrameGenerator, onDeleteLocalWinner }) {
+export default function Gallery({ winners, onOpenWinnerDetail, onOpenFrameGenerator, onDeleteLocalWinner, isAdmin }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [timeFilter, setTimeFilter] = useState("all"); // 'all', 'week', 'month'
   const [filteredWinners, setFilteredWinners] = useState([]);
@@ -134,16 +134,16 @@ export default function Gallery({ winners, onOpenWinnerDetail, onOpenFrameGenera
                     <Calendar size={10} />
                     <span>{winner.date}</span>
                   </div>
-                  {winner.id && winner.id.toString().startsWith("local_") && (
+                  {isAdmin && (
                     <button 
                       className="card-delete-badge-btn"
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (window.confirm("¿Seguro que deseas eliminar este ganador de tu portafolio local?")) {
+                        if (window.confirm("¿Seguro que deseas eliminar este ganador del portafolio?")) {
                           onDeleteLocalWinner(winner.id);
                         }
                       }}
-                      title="Eliminar de mi dispositivo"
+                      title="Eliminar foto"
                     >
                       <Trash2 size={12} />
                     </button>

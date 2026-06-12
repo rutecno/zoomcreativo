@@ -16,6 +16,7 @@ export default function App() {
   const [location, setLocation] = useState("Torre Colpatria-Bogota");
   const [device, setDevice] = useState("Redmi Note 11s");
   const [photoUrl, setPhotoUrl] = useState("/zoomcreativo/portafolio/1.jpeg");
+  const [editingWinnerId, setEditingWinnerId] = useState(null);
   
   // Admin Authentication State
   const [isAdmin, setIsAdmin] = useState(false);
@@ -48,6 +49,7 @@ export default function App() {
   const handleLogout = () => {
     setIsAdmin(false);
     sessionStorage.removeItem("zc_is_admin");
+    setEditingWinnerId(null);
   };
 
   // Customization State
@@ -71,7 +73,9 @@ export default function App() {
   // Load local winners on mount
   useEffect(() => {
     const localWinners = JSON.parse(localStorage.getItem("zc_local_winners") || "[]");
-    setWinners([...localWinners, ...HISTORICO_GANADORES]);
+    const deletedWinners = JSON.parse(localStorage.getItem("zc_deleted_winners") || "[]");
+    const activeHistoricos = HISTORICO_GANADORES.filter(w => !deletedWinners.includes(w.id));
+    setWinners([...localWinners, ...activeHistoricos]);
   }, []);
 
   // Load Main Photo & Logo
@@ -339,6 +343,7 @@ export default function App() {
     if (file) {
       const objectUrl = URL.createObjectURL(file);
       setPhotoUrl(objectUrl);
+      setEditingWinnerId(null);
       // Reset zoom/offset
       setZoom(1);
       setPosX(0);
@@ -376,29 +381,78 @@ export default function App() {
     // Get compressed lightweight base64
     const compressedBase64 = tempCanvas.toDataURL("image/jpeg", 0.7);
     
-    const newWinner = {
-      id: "local_" + Date.now(),
-      date: date,
-      theme: theme,
-      winnerName: winnerName || "Zoom Creativo",
-      winnerInstagram: winnerInstagram,
-      location: location,
-      device: device,
-      photoUrl: compressedBase64,
-      description: `Ganador del reto. Capturado en ${location} con ${device}.`,
-      techniques: [],
-      likes: 0,
-      applause: 0
-    };
-
     try {
       const localWinners = JSON.parse(localStorage.getItem("zc_local_winners") || "[]");
-      // Check if this theme + name + date combination already exists
-      const exists = localWinners.some(w => w.theme === theme && w.winnerName === winnerName && w.date === date);
-      if (!exists) {
+      const deletedWinners = JSON.parse(localStorage.getItem("zc_deleted_winners") || "[]");
+
+      if (editingWinnerId) {
+        const isLocal = editingWinnerId.toString().startsWith("local_");
+        if (isLocal) {
+          const updated = localWinners.map(w => {
+            if (w.id === editingWinnerId) {
+              return {
+                ...w,
+                date: date,
+                theme: theme,
+                winnerName: winnerName || "Zoom Creativo",
+                winnerInstagram: winnerInstagram,
+                location: location,
+                device: device,
+                photoUrl: compressedBase64,
+                description: `Ganador del reto. Capturado en ${location} con ${device}.`
+              };
+            }
+            return w;
+          });
+          localStorage.setItem("zc_local_winners", JSON.stringify(updated));
+          const activeHistoricos = HISTORICO_GANADORES.filter(w => !deletedWinners.includes(w.id));
+          setWinners([...updated, ...activeHistoricos]);
+        } else {
+          const newDeleted = [...deletedWinners, editingWinnerId];
+          localStorage.setItem("zc_deleted_winners", JSON.stringify(newDeleted));
+          
+          const newWinner = {
+            id: "local_" + Date.now(),
+            date: date,
+            theme: theme,
+            winnerName: winnerName || "Zoom Creativo",
+            winnerInstagram: winnerInstagram,
+            location: location,
+            device: device,
+            photoUrl: compressedBase64,
+            description: `Ganador del reto. Capturado en ${location} con ${device}.`,
+            techniques: [],
+            likes: 0,
+            applause: 0
+          };
+          const updated = [newWinner, ...localWinners];
+          localStorage.setItem("zc_local_winners", JSON.stringify(updated));
+          
+          const activeHistoricos = HISTORICO_GANADORES.filter(w => !newDeleted.includes(w.id));
+          setWinners([...updated, ...activeHistoricos]);
+          setEditingWinnerId(newWinner.id);
+        }
+      } else {
+        const newWinner = {
+          id: "local_" + Date.now(),
+          date: date,
+          theme: theme,
+          winnerName: winnerName || "Zoom Creativo",
+          winnerInstagram: winnerInstagram,
+          location: location,
+          device: device,
+          photoUrl: compressedBase64,
+          description: `Ganador del reto. Capturado en ${location} con ${device}.`,
+          techniques: [],
+          likes: 0,
+          applause: 0
+        };
+        
         const updated = [newWinner, ...localWinners];
         localStorage.setItem("zc_local_winners", JSON.stringify(updated));
-        setWinners([...updated, ...HISTORICO_GANADORES]);
+        const activeHistoricos = HISTORICO_GANADORES.filter(w => !deletedWinners.includes(w.id));
+        setWinners([...updated, ...activeHistoricos]);
+        setEditingWinnerId(newWinner.id);
       }
     } catch (e) {
       console.error("No se pudo guardar en el portafolio local (límite de almacenamiento excedido):", e);
@@ -407,12 +461,31 @@ export default function App() {
 
   const handleDeleteLocalWinner = (id) => {
     try {
+      const isLocal = id.toString().startsWith("local_");
       const localWinners = JSON.parse(localStorage.getItem("zc_local_winners") || "[]");
-      const updated = localWinners.filter(w => w.id !== id);
-      localStorage.setItem("zc_local_winners", JSON.stringify(updated));
-      setWinners([...updated, ...HISTORICO_GANADORES]);
+      const deletedWinners = JSON.parse(localStorage.getItem("zc_deleted_winners") || "[]");
+      
+      let updatedLocal = [...localWinners];
+      let updatedDeleted = [...deletedWinners];
+      
+      if (isLocal) {
+        updatedLocal = localWinners.filter(w => w.id !== id);
+        localStorage.setItem("zc_local_winners", JSON.stringify(updatedLocal));
+      } else {
+        if (!updatedDeleted.includes(id)) {
+          updatedDeleted.push(id);
+          localStorage.setItem("zc_deleted_winners", JSON.stringify(updatedDeleted));
+        }
+      }
+      
+      const activeHistoricos = HISTORICO_GANADORES.filter(w => !updatedDeleted.includes(w.id));
+      setWinners([...updatedLocal, ...activeHistoricos]);
+      
+      if (editingWinnerId === id) {
+        setEditingWinnerId(null);
+      }
     } catch (e) {
-      console.error("Error al eliminar el ganador local:", e);
+      console.error("Error al eliminar el ganador:", e);
     }
   };
 
@@ -422,7 +495,6 @@ export default function App() {
       const canvas = canvasRef.current;
       if (!canvas) return;
       
-      // Save it to the local portfolio list only if logged in as admin
       if (isAdmin) {
         saveWinnerToLocalPortfolio();
       }
@@ -446,6 +518,7 @@ export default function App() {
     setPhotoUrl(winner.photoUrl);
     setLocation(winner.location || "Manizales");
     setDevice(winner.device || "Xiaomi 17");
+    setEditingWinnerId(winner.id);
     setZoom(1);
     setPosX(0);
     setPosY(0);
@@ -496,6 +569,36 @@ export default function App() {
             </h2>
 
             <form onSubmit={(e) => e.preventDefault()} className="controls-form">
+              {isAdmin && editingWinnerId && (
+                <div className="editing-indicator-banner animate-fade-in" style={{
+                  background: "rgba(242, 153, 74, 0.1)",
+                  border: "1px solid var(--accent-amber)",
+                  borderRadius: "var(--border-radius-sm)",
+                  padding: "10px 14px",
+                  marginBottom: "20px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center"
+                }}>
+                  <span style={{ fontSize: "0.85rem", color: "var(--accent-amber)", fontWeight: "600" }}>
+                    Editando foto de la galería
+                  </span>
+                  <button 
+                    type="button" 
+                    onClick={() => setEditingWinnerId(null)}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "var(--text-secondary)",
+                      cursor: "pointer",
+                      fontSize: "0.75rem",
+                      textDecoration: "underline"
+                    }}
+                  >
+                    Cancelar Edición
+                  </button>
+                </div>
+              )}
               
               <div className="form-group">
                 <label className="form-label">Tema del Reto Diario</label>
@@ -739,6 +842,28 @@ export default function App() {
               )}
             </button>
             
+            {isAdmin && (
+              <button 
+                type="button" 
+                className="btn btn-secondary btn-save-gallery"
+                onClick={() => {
+                  saveWinnerToLocalPortfolio();
+                  alert(editingWinnerId ? "¡Foto actualizada en la galería!" : "¡Foto guardada en la galería!");
+                }}
+                style={{
+                  marginTop: "12px",
+                  marginBottom: "12px",
+                  width: "100%",
+                  borderColor: "var(--accent-amber)",
+                  color: "var(--accent-amber)",
+                  background: "rgba(242, 153, 74, 0.08)"
+                }}
+              >
+                <Sparkles size={16} />
+                {editingWinnerId ? "Actualizar Datos en Galería" : "Guardar como Nuevo en Galería"}
+              </button>
+            )}
+            
             <p className="resolution-helper-text">
               * Resolucion de salida: {format === "1:1" ? "1200 x 1200 px" : "1080 x 1920 px"} (Formato PNG de alta fidelidad).
             </p>
@@ -749,18 +874,9 @@ export default function App() {
 
       {/* Historical Static Gallery below */}
       <section className="portfolio-showcase-section">
-        <div className="teaser-gallery-header container">
-          <div className="section-title-box">
-            <span className="badge badge-amber">
-              <Award size={12} /> Catalogo de Ejemplos
-            </span>
-            <h2 className="section-title">Portafolio Historico de Zoom</h2>
-            <p className="section-subtitle">Haz clic en cualquier ganador para cargar sus datos en el enmarcador de arriba de forma automatica.</p>
-          </div>
-        </div>
-        
         <Gallery 
           winners={winners} 
+          isAdmin={isAdmin}
           onOpenWinnerDetail={handleSelectWinnerFromGallery}
           onOpenFrameGenerator={handleSelectWinnerFromGallery}
           onDeleteLocalWinner={handleDeleteLocalWinner}

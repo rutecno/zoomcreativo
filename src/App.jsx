@@ -13,6 +13,8 @@ export default function App() {
   const [winnerName, setWinnerName] = useState("Ronaldo Urdaneta");
   const [winnerInstagram, setWinnerInstagram] = useState("zoomcreativo.ok");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [location, setLocation] = useState("Manizales");
+  const [device, setDevice] = useState("Xiaomi 17");
   const [photoUrl, setPhotoUrl] = useState("https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&q=80&w=800");
   
   // Customization State
@@ -61,7 +63,7 @@ export default function App() {
     if (photoLoaded && logoLoaded) {
       drawCanvas();
     }
-  }, [photoLoaded, logoLoaded, styleType, format, zoom, posX, posY, theme, winnerName, winnerInstagram, date]);
+  }, [photoLoaded, logoLoaded, styleType, format, zoom, posX, posY, theme, winnerName, winnerInstagram, date, location, device]);
 
   const drawCanvas = () => {
     const canvas = canvasRef.current;
@@ -208,13 +210,13 @@ export default function App() {
 
       ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
       ctx.font = `bold ${format === "1:1" ? "12px" : "14px"} monospace`;
-      ctx.fillText("TÉCNICAS APLICADAS:", bx + 15, by + 25);
+      ctx.fillText("DETALLES DE CAPTURA:", bx + 15, by + 25);
 
-      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+      ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
       ctx.font = `${format === "1:1" ? "11px" : "13px"} monospace`;
-      ctx.fillText("• Composicion de Tercios", bx + 15, by + 50);
-      ctx.fillText("• Perspectiva Movil", bx + 15, by + 70);
-      ctx.fillText("• Enfoque de Luz", bx + 15, by + 90);
+      ctx.fillText(`LUGAR: ${location.toUpperCase()}`, bx + 15, by + 50);
+      ctx.fillText(`EQUIPO: ${device.toUpperCase()}`, bx + 15, by + 75);
+      ctx.fillText(`FECHA: ${date}`, bx + 15, by + 100);
 
     } else if (styleType === "minimal") {
       const footerY = boxY + boxHeight + 45;
@@ -254,6 +256,11 @@ export default function App() {
         ctx.font = `${format === "1:1" ? "15px" : "16px"} sans-serif`;
         ctx.fillText(`@${winnerInstagram}`, format === "1:1" ? boxX + boxWidth : width / 2, footerY + 75);
       }
+      
+      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+      ctx.font = `${format === "1:1" ? "12px" : "14px"} monospace`;
+      ctx.fillText(`${location.toUpperCase()} • ${device.toUpperCase()}`, format === "1:1" ? boxX + boxWidth : width / 2, footerY + 105);
+      
       ctx.textAlign = "left";
 
     } else { // polaroid
@@ -271,6 +278,10 @@ export default function App() {
         ctx.font = `14px monospace`;
         ctx.fillText(`instagram: @${winnerInstagram}`, boxX, footerY + 85);
       }
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+      ctx.font = `italic ${format === "1:1" ? "14px" : "16px"} serif`;
+      ctx.fillText(`Lugar: ${location} | Cel: ${device}`, boxX, footerY + 115);
 
       ctx.textAlign = "right";
       ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
@@ -315,6 +326,8 @@ export default function App() {
     setWinnerInstagram(winner.winnerInstagram);
     setDate(winner.date);
     setPhotoUrl(winner.photoUrl);
+    setLocation(winner.location || "Manizales");
+    setDevice(winner.device || "Xiaomi 17");
     setZoom(1);
     setPosX(0);
     setPosY(0);
@@ -385,6 +398,30 @@ export default function App() {
                     value={winnerInstagram}
                     onChange={(e) => setWinnerInstagram(e.target.value)}
                     placeholder="ej. carlos_ph"
+                    className="form-input"
+                  />
+                </div>
+              </div>
+
+              <div className="form-group-row">
+                <div className="form-group">
+                  <label className="form-label">Lugar de Captura</label>
+                  <input 
+                    type="text" 
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="ej. Manizales"
+                    className="form-input"
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label className="form-label">Celular / Cámara</label>
+                  <input 
+                    type="text" 
+                    value={device}
+                    onChange={(e) => setDevice(e.target.value)}
+                    placeholder="ej. Xiaomi 17"
                     className="form-input"
                   />
                 </div>

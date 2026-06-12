@@ -490,8 +490,7 @@ export default function App() {
         <div className="container editor-grid">
           
           {/* Left Panel: Form Controls */}
-          {isAdmin ? (
-            <div className="editor-controls-panel glass-panel animate-fade-in">
+          <div className="editor-controls-panel glass-panel animate-fade-in">
             <h2 className="panel-title-text">
               <Sliders size={18} /> Datos del Enmarcado
             </h2>
@@ -570,22 +569,24 @@ export default function App() {
                 />
               </div>
 
-              {/* Upload image box */}
-              <div className="form-group">
-                <label className="form-label">Fotografia Ganadora</label>
-                <div className="upload-box-wrapper">
-                  <label className="upload-label-btn">
-                    <Upload size={18} />
-                    <span>Seleccionar fotografia de tu galeria</span>
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      onChange={handlePhotoUploadChange}
-                      style={{ display: "none" }}
-                    />
-                  </label>
+              {/* Upload image box - Solo visible para el administrador */}
+              {isAdmin && (
+                <div className="form-group">
+                  <label className="form-label">Fotografía Ganadora</label>
+                  <div className="upload-box-wrapper">
+                    <label className="upload-label-btn">
+                      <Upload size={18} />
+                      <span>Seleccionar fotografía de tu galería</span>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handlePhotoUploadChange}
+                        style={{ display: "none" }}
+                      />
+                    </label>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Styles */}
               <div className="form-group">
@@ -702,23 +703,6 @@ export default function App() {
 
             </form>
           </div>
-          ) : (
-            <div className="editor-controls-panel glass-panel animate-fade-in visitor-mode-panel">
-              <div className="visitor-message-box">
-                <Award size={48} className="visitor-icon" />
-                <h3>Portafolio de Ganadores</h3>
-                <p>Estás en la vista pública de <strong>Zoom Creativo</strong>.</p>
-                <p className="visitor-subtext">Haz clic en cualquier ganador en la galería de abajo para verlo enmarcado a la derecha y descargarlo.</p>
-                <button 
-                  type="button" 
-                  className="btn btn-primary btn-admin-shortcut"
-                  onClick={() => setShowLoginModal(true)}
-                >
-                  <Lock size={16} /> Acceder como Admin
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Right Panel: Canvas Preview */}
           <div className="editor-preview-panel glass-panel animate-fade-in">
